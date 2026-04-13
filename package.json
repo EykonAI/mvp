@@ -1,0 +1,14 @@
+{
+  "name": "geoint-mvp",
+  "version": "1.0.0",
+  "description": "Geopolitical Intelligence Platform — MVP",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && node index.js",
+    "client": "cd client && npm run dev",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,0 +1,60 @@
+.map-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(8, 14, 32, 0.92);
+  border: 1px solid #1e3055;
+  border-radius: 7px;
+  padding: 8px 12px;
+  max-width: 260px;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.tooltip-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c8d8f0;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #1e3055;
+}
+
+.tooltip-row {
+  font-size: 11px;
+  color: #7a90b0;
+  line-height: 1.7;
+}
+
+/* Legend */
+.map-legend {
+  position: absolute;
+  bottom: 24px;
+  left: 12px;
+  background: rgba(8, 14, 32, 0.88);
+  border: 1px solid #1a2540;
+  border-radius: 7px;
+  padding: 8px 12px;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #6a84a8;
+  padding: 2px 0;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-vessel   { background: #1e82ff; border: 1px solid #3c9fff; }
+.dot-aircraft { background: #ffd700; }
+.dot-conflict { background: #ff2828; border: 1px solid #ff6464; }

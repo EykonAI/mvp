@@ -1,0 +1,155 @@
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #080d1a;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 50px;
+  background: #0a0f20;
+  border-bottom: 1px solid #1a2540;
+  flex-shrink: 0;
+  gap: 16px;
+  z-index: 10;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.brand-globe {
+  font-size: 18px;
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #3d8bff;
+}
+
+.brand-tag {
+  font-size: 10px;
+  color: #3a4f6e;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding-top: 1px;
+}
+
+.header-version {
+  font-size: 10px;
+  color: #2a3a5a;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.map-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Layer Controls ──────────────────────────────────────────────────────── */
+
+.layer-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.layer-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid #1a2540;
+  background: transparent;
+  color: #3a4f6e;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.layer-btn:hover {
+  border-color: #2a3f60;
+  color: #6a84a8;
+}
+
+.layer-btn.active-vessels {
+  border-color: #1e73cc;
+  color: #4a9eff;
+  background: rgba(30, 115, 204, 0.12);
+}
+
+.layer-btn.active-aircraft {
+  border-color: #c8a800;
+  color: #ffd700;
+  background: rgba(200, 168, 0, 0.12);
+}
+
+.layer-btn.active-conflicts {
+  border-color: #cc2222;
+  color: #ff5555;
+  background: rgba(204, 34, 34, 0.12);
+}
+
+.layer-icon {
+  font-size: 13px;
+}
+
+.layer-label {
+  font-size: 11px;
+}
+
+.layer-badge {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  font-weight: 600;
+  min-width: 16px;
+  text-align: center;
+}
+
+.badge-count {
+  background: rgba(255, 255, 255, 0.08);
+  color: #6a84a8;
+}
+
+.badge-error {
+  background: rgba(255, 60, 60, 0.25);
+  color: #ff6666;
+}
+
+.badge-loading {
+  color: #3a4f6e;
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
