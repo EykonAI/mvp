@@ -105,7 +105,7 @@ app.get('/api/aircraft', async (req, res) => {
       on_ground: a.alt_baro === 'ground',
       country: a.r || null
     }));
-    res.json({ states });
+   res.json(states);
   } catch (err) {
     console.error('[/api/aircraft] Error:', err.message);
     res.status(500).json({ error: err.message });
