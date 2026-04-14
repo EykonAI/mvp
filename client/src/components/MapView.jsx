@@ -37,7 +37,28 @@ function formatAltitude(alt) {
   return `${Math.round(alt).toLocaleString()} m`
 }
 
-export default function MapView({ vessels, aircraft, conflicts }) {
+// Conflict event type → RGBA fill colour
+function conflictColour(eventType, fatalities) {
+  const f     = parseInt(fatalities || 0)
+  const alpha = Math.min(230, 160 + f * 3)
+  const map = {
+    'Battles':                    [255,  50,  50, alpha],
+    'Explosions/Remote violence': [255, 130,   0, alpha],
+    'Violence against civilians': [210,  30,  60, alpha],
+    'Protests':                   [ 79, 195, 247, alpha],
+    'Riots':                      [255, 210,   0, alpha],
+    'Strategic developments':     [150, 170, 180, alpha],
+  }
+  return map[eventType] || [255, 50, 50, alpha]
+}
+
+// ── Props ──────────────────────────────────────────────────────────────────
+// vessels   — array from /api/vessels  (AISHub raw objects)
+// aircraft  — array from /api/aircraft (adsb.lol normalised objects)
+// conflicts — array from /api/conflicts → result.data  (ACLED raw events)
+// visible   — { vessels, aircraft, conflicts } boolean map (from LayerControls)
+
+export default function MapView({ vessels, aircraft, conflicts, visible = {} }) {
   const [tooltip, setTooltip] = useState(null)
 
   const handleHover = useCallback(({ object, x, y, layer }) => {
@@ -47,7 +68,7 @@ export default function MapView({ vessels, aircraft, conflicts }) {
     }
 
     let lines = []
-    const id = layer.id
+    const id  = layer.id
 
     if (id === 'vessels') {
       lines = [
@@ -56,8 +77,8 @@ export default function MapView({ vessels, aircraft, conflicts }) {
         `MMSI: ${object.MMSI}`,
         `Speed: ${object.SOG != null ? object.SOG + ' kn' : 'N/A'}`,
         `Heading: ${object.HEADING != null ? object.HEADING + '°' : 'N/A'}`,
-        object.DEST ? `Destination: ${object.DEST}` : null,
-        object.CALLSIGN ? `Callsign: ${object.CALLSIGN}` : null
+        object.DEST      ? `Destination: ${object.DEST}`    : null,
+        object.CALLSIGN  ? `Callsign: ${object.CALLSIGN}`   : null,
       ]
     } else if (id === 'aircraft') {
       lines = [
@@ -66,15 +87,25 @@ export default function MapView({ vessels, aircraft, conflicts }) {
         `Altitude: ${formatAltitude(object.altitude)}`,
         `Speed: ${object.velocity ? Math.round(object.velocity * 1.94384) + ' kn' : 'N/A'}`,
         `Heading: ${object.heading != null ? Math.round(object.heading) + '°' : 'N/A'}`,
-        object.on_ground ? '📍 On ground' : null
+        object.on_ground ? '📍 On ground' : null,
       ]
     } else if (id === 'conflicts') {
+      // ACLED fields: event_type, event_date, country, admin1, actor1, actor2, fatalities, notes, sub_event_type
+      const loc = [object.location, object.admin1, object.country].filter(Boolean).join(', ')
       lines = [
         `⚠️  ${object.event_type}`,
-        `${object.country} — ${object.event_date}`,
+        `📍 ${loc}  ·  ${object.event_date}`,
         `${object.actor1}${object.actor2 ? ' vs ' + object.actor2 : ''}`,
-        `Fatalities: ${object.fatalities || 0}`,
-        object.notes ? `Note: ${object.notes.slice(0, 80)}${object.notes.length > 80 ? '…' : ''}` : null
+        parseInt(object.fatalities || 0) > 0
+          ? `Fatalities: ${object.fatalities}`
+          : null,
+        object.sub_event_type
+          ? `Subtype: ${object.sub_event_type}`
+          : null,
+        object.notes
+          ? `Note: ${object.notes.slice(0, 100)}${object.notes.length > 100 ? '…' : ''}`
+          : null,
+        `Source: ${object.source || 'ACLED'}`,
       ]
     }
 
@@ -83,24 +114,26 @@ export default function MapView({ vessels, aircraft, conflicts }) {
 
   const layers = [
     new ScatterplotLayer({
-      id:              'vessels',
-      data:            vessels,
-      getPosition:     d => [d.LONGITUDE, d.LATITUDE],
-      getFillColor:    [30, 130, 255, 210],
-      getLineColor:    [60, 160, 255, 150],
-      stroked:         true,
-      lineWidthMinPixels: 1,
-      getRadius:       35_000,
-      radiusMinPixels: 3,
-      radiusMaxPixels: 9,
-      pickable:        true,
-      onHover:         handleHover,
-      updateTriggers:  { getPosition: vessels }
+      id:                  'vessels',
+      data:                vessels,
+      visible:             visible.vessels !== false,
+      getPosition:         d => [d.LONGITUDE, d.LATITUDE],
+      getFillColor:        [30, 130, 255, 210],
+      getLineColor:        [60, 160, 255, 150],
+      stroked:             true,
+      lineWidthMinPixels:  1,
+      getRadius:           35_000,
+      radiusMinPixels:     3,
+      radiusMaxPixels:     9,
+      pickable:            true,
+      onHover:             handleHover,
+      updateTriggers:      { getPosition: vessels },
     }),
 
     new ScatterplotLayer({
       id:              'aircraft',
       data:            aircraft,
+      visible:         visible.aircraft !== false,
       getPosition:     d => [d.longitude, d.latitude],
       getFillColor:    d => d.on_ground ? [120, 120, 120, 180] : [255, 210, 0, 220],
       getRadius:       28_000,
@@ -108,28 +141,28 @@ export default function MapView({ vessels, aircraft, conflicts }) {
       radiusMaxPixels: 7,
       pickable:        true,
       onHover:         handleHover,
-      updateTriggers:  { getPosition: aircraft }
+      updateTriggers:  { getPosition: aircraft },
     }),
 
     new ScatterplotLayer({
       id:              'conflicts',
+      // conflicts prop is now result.data — array of raw ACLED event objects
       data:            conflicts,
+      visible:         visible.conflicts !== false,
       getPosition:     d => [parseFloat(d.longitude), parseFloat(d.latitude)],
-      getFillColor:    d => {
-        const f = parseInt(d.fatalities || 0)
-        const alpha = Math.min(255, 140 + f * 4)
-        return [255, 40, 40, alpha]
-      },
-      getLineColor:    [255, 100, 100, 100],
+      // Colour by event type with alpha scaled by fatality count
+      getFillColor:    d => conflictColour(d.event_type, d.fatalities),
+      getLineColor:    [255, 100, 100, 80],
       stroked:         true,
       lineWidthMinPixels: 1,
-      getRadius:       d => Math.max(55_000, parseInt(d.fatalities || 0) * 9_000 + 55_000),
-      radiusMinPixels: 5,
+      // Radius in metres: baseline 55km + 9km per fatality, capped at 200km
+      getRadius:       d => Math.min(55_000 + parseInt(d.fatalities || 0) * 9_000, 200_000),
+      radiusMinPixels: 4,
       radiusMaxPixels: 28,
       pickable:        true,
       onHover:         handleHover,
-      updateTriggers:  { getPosition: conflicts }
-    })
+      updateTriggers:  { getPosition: conflicts, getFillColor: conflicts },
+    }),
   ]
 
   return (
