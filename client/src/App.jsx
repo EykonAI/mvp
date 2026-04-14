@@ -44,7 +44,7 @@ export default function App() {
         return
       }
 
-      const data = json.data || []
+   const data = Array.isArray(json) ? json : (json.data || json.states || []);
       setter(data)
       setStatus(s => ({
         ...s,
