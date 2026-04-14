@@ -87,21 +87,25 @@ app.get('/api/vessels', async (req, res) => {
     res.status(500).json({ error: 'AISHub request failed', detail: err.message });
   }
 });
-// Aircraft — OpenSky Network proxy
+// Aircraft — adsb.lol (free, no key, cloud-friendly)
 app.get('/api/aircraft', async (req, res) => {
   try {
-    const auth = process.env.OPENSKY_USERNAME
-      ? { username: process.env.OPENSKY_USERNAME, password: process.env.OPENSKY_PASSWORD }
-      : null;
-
-    const params = { lamin: 30, lomin: -30, lamax: 70, lomax: 60 };
-    const config = { params, timeout: 10000 };
-    if (auth) config.auth = auth;
-
     const response = await axios.get(
-      'https://opensky-network.org/api/states/all', config
+      'https://api.adsb.lol/v2/lat/48.0/lon/10.0/dist/2000',
+      { timeout: 10000 }
     );
-    res.json(response.data);
+    const states = (response.data.ac || []).map(a => ({
+      icao24: a.hex,
+      callsign: a.flight?.trim() || null,
+      longitude: a.lon,
+      latitude: a.lat,
+      altitude: a.alt_baro,
+      velocity: a.gs,
+      heading: a.track,
+      on_ground: a.alt_baro === 'ground',
+      country: a.r || null
+    }));
+    res.json({ states });
   } catch (err) {
     console.error('[/api/aircraft] Error:', err.message);
     res.status(500).json({ error: err.message });
