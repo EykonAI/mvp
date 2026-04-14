@@ -5,7 +5,7 @@
 require('dotenv').config();
 const express    = require('express');
 const cors       = require('cors');
-const axios      = require('axios');
+const axios      = require('axios');const path = require('path');
 const { acledGet } = require('./acled-auth');
 
 const app  = express();
@@ -135,7 +135,12 @@ note the source and date if known. Avoid speculation beyond the available data.`
     res.status(500).json({ error: 'Anthropic request failed', detail: err.message });
   }
 });
-
+// ─── Serve React frontend ──────────────────────────────────────────────────
+const clientDist = path.join(__dirname, '../client/dist');
+app.use(express.static(clientDist));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientDist, 'index.html'));
+});
 // ─── Start ─────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
